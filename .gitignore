@@ -1,0 +1,6 @@
+/config/database.local.php
+/storage/*.log
+/.vscode/
+/.idea/
+Thumbs.db
+.DS_Store

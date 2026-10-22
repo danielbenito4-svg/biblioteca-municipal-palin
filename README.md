@@ -5,7 +5,13 @@ Sistema web para administrar el catálogo, los lectores, los préstamos y las de
 
 ## Estado del proyecto
 
-Etapa de propuesta (18 de octubre de 2026). Este repositorio contiene la documentación inicial; la aplicación todavía no está implementada.
+Checkpoint 1 implementado: arquitectura MVC, base de datos MariaDB y CRUD completo de `prestamos`, con búsqueda, filtros, confirmación antes de eliminar y validación del servidor. La instalación inicial incluye 12 préstamos, 10 libros, 10 lectores y 2 usuarios de prueba.
+
+La etiqueta de esta entrega es [`checkpoint-1`](https://github.com/danielbenito4-svg/biblioteca-municipal-palin/tree/checkpoint-1). La demostración de tres minutos está en [docs/checkpoint-1.md](docs/checkpoint-1.md).
+
+![Listado de préstamos](docs/capturas/prestamos.png)
+
+El inicio de sesión, los permisos por rol y el endpoint AJAX corresponden al checkpoint 2. En esta versión local, las operaciones se atribuyen al usuario de demostración con id 1; todavía no hay autenticación ni autorización por roles.
 
 ## Alcance previsto
 
@@ -94,9 +100,11 @@ Cada préstamo pertenece a exactamente un libro, un lector y un usuario. Cada li
 4. Un lector con préstamos vencidos no puede recibir nuevos préstamos.
 5. Las reglas se validan en el servidor. Se impedirán eliminaciones que rompan relaciones existentes; los usuarios pueden desactivarse.
 
-## Seguridad prevista
+## Seguridad del checkpoint 1
 
-Contraseñas con password_hash/password_verify; consultas preparadas PDO; escape con htmlspecialchars; tokens CSRF; validación de entradas; errores comprensibles sin detalles técnicos.
+Consultas preparadas PDO, escape con `htmlspecialchars`, tokens CSRF en operaciones de escritura, validación en cliente y servidor, rutas permitidas por lista y métodos HTTP comprobados. Los errores técnicos se registran en `storage/php-error.log`, fuera de las vistas y protegido por Apache.
+
+Las contraseñas de los usuarios de prueba ya se almacenan con hash. El inicio de sesión con `password_verify` y la comprobación de roles se implementarán en el checkpoint 2. La versión actual está pensada para la demostración local del primer avance.
 
 ## Entregas
 
@@ -111,8 +119,70 @@ El historial reflejará el avance real con al menos quince commits distribuidos 
 
 ## Instalación y pruebas
 
-En esta etapa solo hay documentación. Para la aplicación se requerirán XAMPP con PHP 8.x, MariaDB y PDO habilitado. Los pasos de instalación, database.sql con datos de prueba, un usuario de prueba por rol y las capturas se incorporarán a medida que se implemente y compruebe el sistema.
+Requisitos: XAMPP con Apache, PHP 8.2 o superior, MariaDB 10.4 o superior y extensiones `pdo_mysql`, `mbstring` y `curl` (esta última para las pruebas HTTP). No requiere Composer, Node, frameworks, librerías de terceros ni conexión a internet durante la demostración.
+
+1. Iniciar **Apache** y **MySQL** desde XAMPP.
+2. Clonar o descargar este repositorio dentro de `C:\xampp\htdocs\biblioteca-palin`.
+3. Abrir `http://localhost/phpmyadmin`, elegir **Importar** y seleccionar `database.sql`. El script crea la base `biblioteca_palin`, sus cuatro tablas, restricciones y datos de prueba. Importarlo una sola vez en una instalación nueva; no elimina bases ni tablas existentes.
+4. La configuración local predeterminada es `127.0.0.1:3306`, usuario `root` y contraseña vacía, habitual en XAMPP de desarrollo. Si el entorno usa otros valores, copiar `config/database.local.example.php` como `config/database.local.php` y ajustar los datos. Este archivo local está excluido de Git. También se aceptan las variables `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME` y `DB_PASSWORD`.
+5. Abrir **http://localhost/biblioteca-palin/**.
+
+La zona horaria del sistema es `America/Guatemala`. Las fechas de los datos de prueba se calculan al importar, para disponer de casos en curso, vencidos y devueltos. Los nombres, teléfonos e identificadores del catálogo son datos de demostración.
+
+### Organización MVC
+
+```text
+index.php                   Enrutador de entrada y controles HTTP/CSRF
+config/
+  bootstrap.php             Inicio, autoload y funciones compartidas
+  database.php              Configuración de conexión
+  Conexion.php              Conexión PDO
+controllers/
+  PrestamoController.php    Recibe solicitudes y elige modelos y vistas
+models/
+  Prestamo.php              Consultas, transacciones y reglas de negocio
+  Catalogo.php              Libros, lectores y operador de registro
+  ValidationException.php   Errores de validación del formulario
+views/
+  layout/                   Estructura compartida de las páginas
+  prestamos/                Listado, formulario, detalle y confirmación
+public/css/ y public/js/    Recursos locales de la interfaz
+database.sql                Esquema y datos de prueba
+tests/                      Pruebas de integración y HTTP
+docs/                       Guía de exposición y capturas
+```
+
+Las vistas no ejecutan SQL y el controlador no construye HTML. `usuario_id` conserva al operador original al editar. La fecha límite y la multa siempre se calculan en PHP; los valores enviados por el navegador no pueden reemplazarlos. La disponibilidad se calcula desde los préstamos sin devolución, en lugar de almacenar otro contador que pueda desajustarse.
+
+### Probar el sistema
+
+Con MariaDB iniciado, ejecutar en una terminal:
+
+```powershell
+C:\xampp\php\php.exe tests\integration.php
+```
+
+La prueba crea una base temporal con nombre aleatorio, verifica el CRUD, las cuatro reglas, fechas, multas, integridad referencial y búsquedas, y elimina únicamente esa base temporal al terminar. Requiere permisos para crear bases locales.
+
+Con Apache y la aplicación instalados:
+
+```powershell
+C:\xampp\php\php.exe tests\http.php
+```
+
+La prueba HTTP verifica formularios, persistencia, errores, CSRF, métodos HTTP y escape XSS. Crea su propio préstamo de prueba y lo elimina al terminar. Se puede pasar una URL local diferente como primer argumento.
+
+Validación realizada: **32 comprobaciones de integración y 21 HTTP correctas**, además del recorrido del CRUD en navegador y revisión de la interfaz en escritorio y celular.
+
+### Usuarios de demostración
+
+| Usuario | Contraseña de prueba | Rol previsto |
+| --- | --- | --- |
+| `bibliotecario` | `Biblioteca2026!` | Bibliotecario |
+| `auxiliar` | `Auxiliar2026!` | Auxiliar |
+
+Estos usuarios están preparados en la base para el checkpoint 2; en el checkpoint 1 todavía no se solicita iniciar sesión.
 
 ## Uso de inteligencia artificial
 
-Se utilizó ChatGPT/Codex como apoyo para organizar la propuesta, elaborar un modelo de datos preliminar y redactar la documentación inicial. El estudiante debe revisar y comprender el contenido y el código que se incorpore. Esta sección se actualizará conforme al uso real de la herramienta.
+Se utilizó ChatGPT/Codex como apoyo para organizar la propuesta, elaborar el modelo de datos, implementar el checkpoint 1, depurar el código, preparar pruebas y redactar la documentación. El estudiante debe revisar y comprender el código, practicar la demostración y poder explicar o modificar lo que entregue. Esta sección se actualizará conforme al uso real de la herramienta.
