@@ -23,7 +23,7 @@
             <td class="date-cell"><?= e(fecha($p['fecha_prestamo'])) ?><small>Vence <?= e(fecha($p['fecha_limite'])) ?></small></td>
             <td><span class="status <?= e($status) ?>"><i aria-hidden="true"></i><?= e(estado_texto($status)) ?></span></td>
             <td class="money">Q <?= number_format(multa_visible($p),2) ?></td>
-            <td><div class="row-actions"><a href="<?= e(url('ver',['id'=>$p['id']])) ?>" aria-label="Ver préstamo <?= e($p['id']) ?>">Ver</a><a href="<?= e(url('editar',['id'=>$p['id']])) ?>" aria-label="Editar préstamo <?= e($p['id']) ?>">Editar</a><a class="danger-link" href="<?= e(url('confirmarEliminar',['id'=>$p['id']])) ?>" aria-label="Eliminar préstamo <?= e($p['id']) ?>">Eliminar</a></div></td>
+            <td><div class="row-actions"><a href="<?= e(url('ver',['id'=>$p['id']])) ?>" aria-label="Ver préstamo <?= e($p['id']) ?>">Ver</a><a href="<?= e(url('editar',['id'=>$p['id']])) ?>" aria-label="Editar préstamo <?= e($p['id']) ?>">Editar</a><?php if (es_bibliotecario()): ?><a class="danger-link" href="<?= e(url('confirmarEliminar',['id'=>$p['id']])) ?>" aria-label="Eliminar préstamo <?= e($p['id']) ?>">Eliminar</a><?php endif ?></div></td>
         </tr>
     <?php endforeach ?>
     <?php if (!$prestamos): ?><tr><td colspan="7"><div class="empty-state"><h3>No hay préstamos que coincidan</h3><p>Prueba con otro nombre o cambia los filtros.</p><a href="<?= e(url()) ?>">Ver todos los préstamos</a></div></td></tr><?php endif ?>

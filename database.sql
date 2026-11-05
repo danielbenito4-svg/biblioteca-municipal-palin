@@ -1,4 +1,4 @@
--- Biblioteca Municipal de Palín · Checkpoint 1
+-- Biblioteca Municipal de Palín · Checkpoint 2 (mismo esquema del checkpoint 1)
 -- Importar una vez en una instalación nueva. No elimina bases ni tablas existentes.
 SET NAMES utf8mb4;
 SET time_zone = '-06:00';

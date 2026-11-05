@@ -12,7 +12,7 @@ spl_autoload_register(function (string $class): void {
     }
 });
 if (PHP_SAPI !== 'cli') {
-    session_start(['cookie_httponly' => true, 'cookie_samesite' => 'Lax',
+    session_start(['cookie_httponly' => true, 'cookie_samesite' => 'Lax', 'use_only_cookies' => true,
         'cookie_secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
         'use_strict_mode' => true]);
 }
@@ -22,12 +22,32 @@ function e(mixed $value): string
 }
 function url(string $action = 'index', array $params = []): string
 {
-    return 'index.php?' . http_build_query(['c' => 'prestamos', 'a' => $action] + $params);
+    return ruta('prestamos', $action, $params);
+}
+function ruta(string $controller, string $action = 'index', array $params = []): string
+{
+    return 'index.php?' . http_build_query(['c' => $controller, 'a' => $action] + $params);
+}
+function usuario_actual(): ?array
+{
+    return $GLOBALS['currentUser'] ?? null;
+}
+function es_bibliotecario(): bool
+{
+    return (usuario_actual()['rol'] ?? null) === 'bibliotecario';
+}
+function json_response(array $data, int $status = 200): void
+{
+    http_response_code($status);
+    header('Content-Type: application/json; charset=UTF-8');
+    echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP
+        | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR);
 }
 function render(string $view, array $viewData = []): void
 {
     extract($viewData, EXTR_SKIP);
     $action = is_string($_GET['a'] ?? null) ? $_GET['a'] : 'index';
+    $controller = is_string($_GET['c'] ?? null) ? $_GET['c'] : 'prestamos';
     require APP_ROOT . '/views/layout/header.php';
     require APP_ROOT . '/views/' . $view . '.php';
     require APP_ROOT . '/views/layout/footer.php';

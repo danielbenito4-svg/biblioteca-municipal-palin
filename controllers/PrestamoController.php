@@ -28,7 +28,7 @@ final class PrestamoController
     {
         render('prestamos/formulario',['title'=>$id ? 'Editar préstamo' : 'Nuevo préstamo',
             'data'=>$data,'errors'=>$errors,'id'=>$id,'libros'=>$this->catalogo->libros($id ?? 0),
-            'lectores'=>$this->catalogo->lectores(),'operador'=>$this->catalogo->usuarioRegistro()]);
+            'lectores'=>$this->catalogo->lectores(),'operador'=>usuario_actual()]);
     }
     public function crear(): void
     {
@@ -49,7 +49,7 @@ final class PrestamoController
             $data[$key]=is_string($_POST[$key] ?? null) ? trim($_POST[$key]) : '';
         }
         try {
-            $operador=$this->catalogo->usuarioRegistro();
+            $operador=usuario_actual();
             $saved=$this->prestamos->guardar($data,(int)$operador['id'],$id);
             flash($id ? 'Los cambios del préstamo se guardaron correctamente.' : 'El préstamo se registró correctamente.');
             header('Location: '.url('index',['destacado'=>$saved]),true,303);

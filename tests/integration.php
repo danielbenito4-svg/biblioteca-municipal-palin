@@ -2,6 +2,8 @@
 declare(strict_types=1);
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 require dirname(__DIR__).'/config/bootstrap.php';
+ob_start();
+session_start(['use_cookies'=>false, 'cache_limiter'=>'']);
 
 // Toda la prueba utiliza una base temporal independiente, nunca la base de la demostración.
 $config=require APP_ROOT.'/config/database.php';
@@ -31,6 +33,38 @@ try {
     $sql=str_replace('biblioteca_palin',$temporary,file_get_contents(APP_ROOT.'/database.sql'));
     $db->exec($sql);
     $model=new Prestamo($db); $catalogo=new Catalogo($db);
+    $usuarios=new Usuario($db);
+    $admin=$usuarios->autenticar('bibliotecario','Biblioteca2026!');
+    check($admin!==null && $admin['rol']==='bibliotecario' && !isset($admin['password_hash']),'Login verifica hash sin devolver contraseña');
+    check($usuarios->autenticar('auxiliar','Auxiliar2026!')['rol']==='auxiliar','Autenticar segundo rol');
+    check($usuarios->autenticar('bibliotecario','mala')===null && $usuarios->autenticar('noExiste','Biblioteca2026!')===null,'Credenciales inválidas no autentican');
+    check($usuarios->autenticar("' OR 1=1 --",'Biblioteca2026!')===null,'Consulta de usuario parametrizada');
+    $db->exec('UPDATE usuarios SET activo=0 WHERE id=2');
+    check($usuarios->autenticar('auxiliar','Auxiliar2026!')===null,'Usuario inactivo no inicia sesión');
+    $db->exec('UPDATE usuarios SET activo=1 WHERE id=2');
+    $oldSession=session_id(); $_SESSION['csrf_token']='anterior';
+    Autenticacion::iniciar($admin);
+    check(session_id()!==$oldSession && !isset($_SESSION['csrf_token']),'Login regenera sesión y descarta token antiguo');
+    check(Autenticacion::actual($usuarios)['id']==1,'Recuperar usuario autenticado desde BD');
+    $db->exec("UPDATE usuarios SET rol='auxiliar' WHERE id=1");
+    check(Autenticacion::actual($usuarios)['rol']==='auxiliar','Cambio de rol se aplica a sesión existente');
+    $db->exec('UPDATE usuarios SET activo=0 WHERE id=1');
+    check(Autenticacion::actual($usuarios)===null && !isset($_SESSION['usuario_id']),'Desactivar usuario invalida sesión existente');
+    $db->exec("UPDATE usuarios SET activo=1,rol='bibliotecario' WHERE id=1");
+    Autenticacion::iniciar($admin);
+    $_SESSION['ultima_actividad']=time()-Autenticacion::INACTIVIDAD;
+    check(Autenticacion::actual($usuarios)===null,'Caducidad después de 30 minutos de inactividad');
+    check(count($catalogo->buscar('Asturias'))===2 && (int)$catalogo->buscar('DEMO-003')[0]['disponibles']===0,'Búsqueda por autor y disponibilidad real');
+    check($catalogo->buscar("' OR 1=1 --")===[] && $catalogo->buscar('%%%')===[],'Búsqueda AJAX parametrizada con comodines literales');
+    $book=$catalogo->encontrar(1);
+    $edited=array_replace($book,['titulo'=>'Título actualizado de prueba','ejemplares_totales'=>'4']);
+    $catalogo->actualizar(1,$edited);
+    check($catalogo->encontrar(1)['titulo']===$edited['titulo'],'Administrador actualiza catálogo');
+    try { $catalogo->actualizar(1,array_replace($book,['ejemplares_totales'=>'0'])); throw new RuntimeException('Permitió menos ejemplares que préstamos activos'); }
+    catch (ValidationException $e) { check(isset($e->errors['ejemplares_totales']),'No reducir catálogo por debajo de préstamos sin devolver'); }
+    try { $catalogo->actualizar(1,array_replace($book,['isbn'=>'DEMO-002'])); throw new RuntimeException('Permitió ISBN duplicado'); }
+    catch (ValidationException $e) { check(isset($e->errors['isbn']),'ISBN duplicado muestra error de validación'); }
+    $catalogo->actualizar(1,$book);
     $today=date('Y-m-d');
     $base=['libro_id'=>'10','lector_id'=>'4','fecha_prestamo'=>$today,'fecha_devolucion'=>''];
     check((int)$model->resumen()['total']===12,'Importación de 12 préstamos');
@@ -91,5 +125,7 @@ try {
     if (preg_match('/^biblioteca_palin_test_[a-f0-9]{8}$/D',$temporary)) {
         $db->exec('DROP DATABASE IF EXISTS `'.$temporary.'`');
     }
+    session_destroy();
+    ob_end_flush();
 }
 exit($exitCode);
