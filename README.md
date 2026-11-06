@@ -7,7 +7,7 @@ Sistema web para administrar el catálogo, los lectores, los préstamos y las de
 
 Checkpoint 2 implementado: inicio/cierre de sesión, contraseñas con hash, autorización por roles en el servidor, búsqueda AJAX del catálogo con disponibilidad y checklist de seguridad aplicado. Se conserva el MVC y el CRUD de `prestamos` del checkpoint 1. La instalación inicial incluye 12 préstamos, 10 libros, 10 lectores y 2 usuarios de prueba.
 
-La etiqueta de esta entrega es [`checkpoint-2`](https://github.com/danielbenito4-svg/biblioteca-municipal-palin/tree/checkpoint-2). Ver [demostración de tres minutos](docs/checkpoint-2.md) y [checklist de seguridad](docs/seguridad-checkpoint-2.md). La versión anterior permanece en [`checkpoint-1`](https://github.com/danielbenito4-svg/biblioteca-municipal-palin/tree/checkpoint-1).
+La etiqueta de esta entrega es [`checkpoint-2`](https://github.com/danielbenito4-svg/biblioteca-municipal-palin/tree/checkpoint-2). Ver el [checklist de seguridad](docs/seguridad-checkpoint-2.md). La versión anterior permanece en [`checkpoint-1`](https://github.com/danielbenito4-svg/biblioteca-municipal-palin/tree/checkpoint-1).
 
 ![Inicio de sesión](docs/capturas/login.png)
 
@@ -161,7 +161,7 @@ views/
 public/css/ y public/js/    Recursos locales de la interfaz
 database.sql                Esquema y datos de prueba
 tests/                      Pruebas de integración y HTTP
-docs/                       Guía de exposición y capturas
+docs/                       Checklist de seguridad y capturas
 ```
 
 Las vistas no ejecutan SQL y el controlador no construye HTML. `usuario_id` conserva al operador original al editar. La fecha límite y la multa siempre se calculan en PHP; los valores enviados por el navegador no pueden reemplazarlos. La disponibilidad se calcula desde los préstamos sin devolución, en lugar de almacenar otro contador que pueda desajustarse.
@@ -184,7 +184,7 @@ C:\xampp\php\php.exe tests\http.php
 
 La prueba HTTP verifica autenticación, cierre de sesión, permisos con ambos roles, rutas directas, JSON, formularios, persistencia, errores, CSRF, métodos HTTP y escape XSS. Crea sus propios préstamos de prueba y los elimina al terminar. Se puede pasar una URL local diferente como primer argumento. Usa las cuentas de demostración originales; las pruebas de cambios de rol, usuarios inactivos y caducidad se ejecutan únicamente en la base temporal de integración.
 
-Los resultados de validación del checkpoint 2 están registrados en [docs/checkpoint-2.md](docs/checkpoint-2.md).
+Validación del checkpoint 2: **47 comprobaciones de integración y 67 HTTP correctas**, además de la revisión en navegador y móvil. Las evidencias y los controles aplicados están en el [checklist de seguridad](docs/seguridad-checkpoint-2.md).
 
 ### Usuarios de demostración
 
