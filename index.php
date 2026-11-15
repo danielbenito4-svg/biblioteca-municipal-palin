@@ -3,6 +3,8 @@ declare(strict_types=1);
 require __DIR__.'/config/bootstrap.php';
 header('Content-Type: text/html; charset=UTF-8');
 header('Cache-Control: no-store, private');
+// MITIGACION 3 (Tarea 9): bloquea clickjacking incluso en navegadores antiguos.
+header('X-Frame-Options: DENY');
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: same-origin');
 header("Content-Security-Policy: default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data:; base-uri 'self'; form-action 'self'; frame-ancestors 'none'");
@@ -45,6 +47,8 @@ try {
         exit;
     }
     if ($roles && !in_array($currentUser['rol'], $roles, true)) {
+        // MITIGACION 2: acceso denegado queda en bitacora interna.
+        AuditoriaSeguridad::registrar('acceso_denegado', (string)$currentUser['usuario']);
         fail_request(403, 'Acceso restringido', 'Tu rol no tiene permiso para realizar esta operación.'); exit;
     }
     if ($method === 'POST' && !csrf_valid()) {
