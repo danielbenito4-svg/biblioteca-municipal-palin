@@ -35,7 +35,11 @@ try {
         throw new RuntimeException('Registro inseguro.');
     }
     echo "OK: bitacora registra eventos sin usuario ni contrasena en claro.\n";
-    echo "OK: index.php incorpora X-Frame-Options: DENY (validar con curl HTTP).\n";
+    if (!str_contains(file_get_contents(APP_ROOT . '/index.php'),
+        "header('X-Frame-Options: DENY');")) {
+        throw new RuntimeException('Falta defensa contra clickjacking.');
+    }
+    echo "OK: cabecera X-Frame-Options declarada en la respuesta web.\\n";
 } finally {
     @unlink($archivo);
 }
