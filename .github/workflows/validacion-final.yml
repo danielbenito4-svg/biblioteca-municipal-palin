@@ -80,5 +80,6 @@ jobs:
         run: |
           git config user.name "Entrega Final"
           git config user.email "actions@users.noreply.github.com"
-          git tag -a final -m "Entrega y defensa del proyecto final, noviembre 2026" "$GITHUB_SHA"
-          git push origin refs/tags/final
+          git fetch origin refs/tags/final:refs/tags/final || true
+          git tag -fa final -m "Entrega y defensa del proyecto final, noviembre 2026 (AJAX corregido)" "$GITHUB_SHA"
+          git push --force origin refs/tags/final
