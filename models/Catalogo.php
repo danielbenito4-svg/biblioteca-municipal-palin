@@ -71,4 +71,55 @@ final class Catalogo
             throw $e;
         }
     }
+    public function listar(string $q=''): array
+    {
+        $q=mb_substr(trim($q),0,100);
+        if ($q==='') { return $this->libros(); }
+        $term='%'.str_replace(['!','%','_'],['!!','!%','!_'],$q).'%';
+        $stmt=$this->db->prepare("SELECT l.*, l.ejemplares_totales -
+            (SELECT COUNT(*) FROM prestamos p WHERE p.libro_id=l.id AND p.fecha_devolucion IS NULL) AS disponibles
+            FROM libros l WHERE l.titulo LIKE ? ESCAPE '!' OR l.autor LIKE ? ESCAPE '!'
+            OR l.isbn LIKE ? ESCAPE '!' ORDER BY l.titulo");
+        $stmt->execute([$term,$term,$term]);
+        return $stmt->fetchAll();
+    }
+    public function crear(array $d): int
+    {
+        $e=[];
+        foreach (['isbn'=>20,'titulo'=>150,'autor'=>150,'categoria'=>80] as $f=>$max) {
+            if (!is_string($d[$f]??null)||trim($d[$f])===''||mb_strlen($d[$f])>$max) {
+                $e[$f]="El campo $f es obligatorio y admite hasta $max caracteres.";
+            }
+        }
+        foreach (['anio'=>[1,9999],'ejemplares_totales'=>[0,1000000]] as $f=>$range) {
+            if (filter_var($d[$f]??null,FILTER_VALIDATE_INT,
+                ['options'=>['min_range'=>$range[0],'max_range'=>$range[1]]])===false) {
+                $e[$f]="El campo $f debe estar entre $range[0] y $range[1].";
+            }
+        }
+        if ($e) { throw new ValidationException($e); }
+        try {
+            $q=$this->db->prepare('INSERT INTO libros (isbn,titulo,autor,categoria,anio,ejemplares_totales) VALUES (?,?,?,?,?,?)');
+            $q->execute([$d['isbn'],$d['titulo'],$d['autor'],$d['categoria'],(int)$d['anio'],(int)$d['ejemplares_totales']]);
+            return (int)$this->db->lastInsertId();
+        } catch (PDOException $ex) {
+            if ($ex->getCode()==='23000') { throw new ValidationException(['isbn'=>'Ya existe un libro con ese ISBN.']); }
+            throw $ex;
+        }
+    }
+    public function eliminar(int $id): void
+    {
+        if ($id<1) { throw new ValidationException(['general'=>'Selecciona un libro válido.']); }
+        try {
+            $q=$this->db->prepare('DELETE FROM libros WHERE id=?');
+            $q->execute([$id]);
+            if ($q->rowCount()!==1) { throw new ValidationException(['general'=>'El libro ya no existe.']); }
+        } catch (PDOException $ex) {
+            if ($ex->getCode()==='23000') {
+                throw new ValidationException(['general'=>'No se puede eliminar este libro porque tiene préstamos registrados.']);
+            }
+            throw $ex;
+        }
+    }
+
 }
