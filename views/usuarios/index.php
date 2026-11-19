@@ -6,8 +6,8 @@
 <label class="visually-hidden" for="q">Buscar usuario</label><input id="q" name="q" value="<?= e($buscar) ?>" maxlength="100" placeholder="Buscar usuario">
 <button type="submit" class="button secondary">Buscar</button></form>
 <div class="table-scroll"><table class="loans-table"><thead><tr><th>Usuario</th><th>Nombre</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>
-<?php foreach($usuarios as $u): ?><tr><td><?= e($u['usuario']) ?></td><td class="cell-title"><?= e($u['nombre']) ?></td>
-<td><?= e($u['rol']) ?></td><td><?= $u['activo']?'Activo':'Inactivo' ?></td><td><div class="row-actions">
+<?php foreach($usuarios as $u): ?><tr><td data-label="Usuario"><?= e($u['usuario']) ?></td><td class="cell-title" data-label="Nombre"><?= e($u['nombre']) ?></td>
+<td data-label="Rol"><?= e($u['rol']) ?></td><td data-label="Estado"><?= $u['activo']?'Activo':'Inactivo' ?></td><td data-label="Acciones"><div class="row-actions">
 <a href="<?= e(ruta('usuarios','editar',['id'=>$u['id']])) ?>">Editar</a>
 <?php if($u['activo'] && (int)$u['id']!==(int)usuario_actual()['id']): ?>
 <a class="danger-link" href="<?= e(ruta('usuarios','confirmarDesactivar',['id'=>$u['id']])) ?>">Desactivar</a><?php endif ?>
