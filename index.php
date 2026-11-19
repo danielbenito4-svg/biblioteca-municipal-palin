@@ -18,7 +18,16 @@ $routes = [
         'editar' => ['GET', $both, false], 'ver' => ['GET', $both, false], 'guardar' => ['POST', $both, false],
         'confirmarEliminar' => ['GET', $admin, false], 'eliminar' => ['POST', $admin, false]],
     'catalogo' => ['index' => ['GET', $both, false], 'buscar' => ['GET', $both, true],
-        'editar' => ['GET', $admin, false], 'guardar' => ['POST', $admin, false]],
+        'editar' => ['GET', $admin, false], 'guardar' => ['POST', $admin, false],
+        'crear' => ['GET', $admin, false], 'confirmarEliminar' => ['GET', $admin, false],
+        'eliminar' => ['POST', $admin, false]],
+    'lectores' => ['index' => ['GET', $both, false], 'crear' => ['GET', $admin, false],
+        'editar' => ['GET', $admin, false], 'guardar' => ['POST', $admin, false],
+        'confirmarEliminar' => ['GET', $admin, false], 'eliminar' => ['POST', $admin, false]],
+    'usuarios' => ['index' => ['GET', $admin, false], 'crear' => ['GET', $admin, false],
+        'editar' => ['GET', $admin, false], 'guardar' => ['POST', $admin, false],
+        'confirmarDesactivar' => ['GET', $admin, false], 'desactivar' => ['POST', $admin, false]],
+    'reportes' => ['index' => ['GET', $admin, false]],
 ];
 $controller = $_GET['c'] ?? 'prestamos';
 $action = $_GET['a'] ?? ($controller === 'auth' ? 'login' : 'index');
@@ -58,6 +67,9 @@ try {
         'auth' => new AuthController($usuarios),
         'catalogo' => new CatalogoController(new Catalogo($db)),
         'prestamos' => new PrestamoController(new Prestamo($db), new Catalogo($db)),
+        'lectores' => new LectorController(new Lector($db)),
+        'usuarios' => new UsuariosController(new AdministracionUsuarios($db)),
+        'reportes' => new ReporteController(new Reporte($db)),
     };
     $handler->$action();
 } catch (Throwable $e) {

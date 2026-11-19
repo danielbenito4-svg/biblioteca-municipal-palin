@@ -21,6 +21,11 @@
         <a class="nav-link <?= $controller==='prestamos' && $action==='index' ? 'selected' : '' ?>" href="<?= e(url()) ?>"><span aria-hidden="true">▤</span> Préstamos</a>
         <a class="nav-link <?= $controller==='prestamos' && $action==='crear' ? 'selected' : '' ?>" href="<?= e(url('crear')) ?>"><span aria-hidden="true">＋</span> Registrar préstamo</a>
         <a class="nav-link <?= $controller==='catalogo' ? 'selected' : '' ?>" href="<?= e(ruta('catalogo')) ?>"><span aria-hidden="true">⌕</span> Catálogo</a>
+        <a class="nav-link <?= $controller==='lectores' ? 'selected' : '' ?>" href="<?= e(ruta('lectores')) ?>"><span aria-hidden="true">♙</span> Lectores</a>
+        <?php if (es_bibliotecario()): ?>
+        <a class="nav-link <?= $controller==='usuarios' ? 'selected' : '' ?>" href="<?= e(ruta('usuarios')) ?>"><span aria-hidden="true">♙</span> Usuarios</a>
+        <a class="nav-link <?= $controller==='reportes' ? 'selected' : '' ?>" href="<?= e(ruta('reportes')) ?>"><span aria-hidden="true">▤</span> Reportes</a>
+        <?php endif ?>
     </nav>
     <div class="sidebar-note"><span class="small-label">PALÍN, ESCUINTLA</span><p>Un espacio para leer,<br>aprender y compartir.</p><div class="shelf" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div></div>
 </aside>
