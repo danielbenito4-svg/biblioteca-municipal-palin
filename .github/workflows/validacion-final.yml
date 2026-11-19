@@ -55,7 +55,8 @@ jobs:
           chmod -R ugo+rwX storage
           php -r '$c=require "config/database.php"; $p=new PDO("mysql:host=".$c["host"].";port=".$c["port"].";charset=utf8mb4",$c["username"],$c["password"]); $p->exec(file_get_contents("database.sql"));'
           sudo service apache2 restart
-          php tests/http.php
+          curl -sSi --max-time 10 http://localhost/biblioteca-palin/ | head -n 25
+          php tests/http.php || { sudo tail -n 80 /var/log/apache2/error.log; exit 1; }
       - name: Preparar ZIP definitivo de codigo
         if: github.ref == 'refs/heads/main'
         run: |
