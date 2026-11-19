@@ -17,11 +17,11 @@
 <?php else: ?><tr><th>#</th><th>Libro</th><th>Autor</th><th>Préstamos</th><th>Lectores diferentes</th></tr><?php endif ?>
 </thead><tbody>
 <?php foreach($datos as $n=>$d): ?>
-<?php if($tipo==='vencidos'): ?><tr><td><?= e($d['id']) ?></td><td><?= e($d['titulo']) ?></td>
-<td><?= e($d['lector']) ?> (<?= e($d['carne']) ?>)</td><td><?= e($d['fecha_limite']) ?></td>
-<td><?= e($d['dias_atraso']) ?></td><td>Q <?= number_format((float)$d['multa_estimada'],2) ?></td></tr>
-<?php else: ?><tr><td><?= e($n+1) ?></td><td><?= e($d['titulo']) ?></td><td><?= e($d['autor']) ?></td>
-<td><?= e($d['prestamos_mes']) ?></td><td><?= e($d['lectores_distintos']) ?></td></tr><?php endif ?>
+<?php if($tipo==='vencidos'): ?><tr><td data-label="N.º"><?= e($d['id']) ?></td><td data-label="Libro"><?= e($d['titulo']) ?></td>
+<td data-label="Lector"><?= e($d['lector']) ?> (<?= e($d['carne']) ?>)</td><td data-label="Vencimiento"><?= e($d['fecha_limite']) ?></td>
+<td data-label="Días"><?= e($d['dias_atraso']) ?></td><td data-label="Multa estimada">Q <?= number_format((float)$d['multa_estimada'],2) ?></td></tr>
+<?php else: ?><tr><td data-label="Puesto"><?= e($n+1) ?></td><td data-label="Libro"><?= e($d['titulo']) ?></td><td data-label="Autor"><?= e($d['autor']) ?></td>
+<td data-label="Préstamos"><?= e($d['prestamos_mes']) ?></td><td data-label="Lectores diferentes"><?= e($d['lectores_distintos']) ?></td></tr><?php endif ?>
 <?php endforeach ?>
 <?php if(!$datos): ?><tr><td colspan="<?= $tipo==='vencidos'?6:5 ?>">No hay registros para el filtro seleccionado.</td></tr><?php endif ?>
 </tbody></table></div></section>
