@@ -24,7 +24,6 @@ if (catalogo) {
     const input = document.getElementById('catalogo-q');
     const status = document.getElementById('catalogo-estado');
     const results = document.getElementById('catalogo-resultados');
-    const empty = document.getElementById('catalogo-vacio');
     let timer;
     let request;
     let version = 0;
@@ -69,13 +68,11 @@ if (catalogo) {
         const query = input.value.trim();
         results.replaceChildren();
         results.setAttribute('aria-busy', 'false');
-        empty.hidden = false;
         if (query.length < 3) {
             status.textContent = 'Escribe al menos 3 caracteres para buscar.';
             return;
         }
         status.textContent = 'Buscando libros…';
-        empty.hidden = true;
         results.setAttribute('aria-busy', 'true');
         timer = setTimeout(async () => {
             const pending = new AbortController();
