@@ -131,6 +131,17 @@ try {
     [, $body]=request('index.php?c=catalogo&a=buscar&q='.rawurlencode("' OR 1=1 --"));
     test(json_decode($body,true,512,JSON_THROW_ON_ERROR)['libros']===[],'SQL inyectado no devuelve catálogo completo');
     test(request('index.php?c=catalogo&a=buscar&q=Asturias',[])[0]===405,'Endpoint JSON rechaza escritura POST');
+    test(request('index.php?c=catalogo&a=crear')[0]===200,'Bibliotecario abre formulario de alta de libros');
+    test(request('index.php?c=catalogo&a=confirmarEliminar&id=1')[0]===200,'Confirmación de eliminar libro');
+    test(request('index.php?c=lectores')[0]===200,'Listado de lectores accesible');
+    test(request('index.php?c=lectores&a=crear')[0]===200,'Formulario de alta de lectores');
+    test(request('index.php?c=lectores&a=editar&id=1')[0]===200,'Formulario de edición de lectores');
+    test(request('index.php?c=usuarios')[0]===200,'Listado de usuarios exclusivo de bibliotecario');
+    test(request('index.php?c=usuarios&a=crear')[0]===200,'Formulario de alta de usuarios');
+    test(request('index.php?c=reportes&a=index&tipo=vencidos&hasta='.date('Y-m-d'))[0]===200,
+        'Reporte de vencidos a fecha actual');
+    test(request('index.php?c=reportes&a=index&tipo=populares&mes='.date('Y-m'))[0]===200,
+        'Reporte mensual de libros más prestados');
     [$status,$html]=request('index.php?c=catalogo&a=editar&id=1');
     test($status===200 && str_contains($html,'Guardar libro'),'Bibliotecario tiene acceso a edición del catálogo');
     $catalogToken=readToken($html);
@@ -152,17 +163,6 @@ try {
     test(request('index.php?c=prestamos&a=confirmarEliminar&id=1')[0]===403,'Auxiliar no abre eliminación por URL directa');
     test(request('index.php?c=prestamos&a=eliminar&id=1',['csrf_token'=>$token,'rol'=>'bibliotecario'])[0]===403,'Auxiliar no elimina por POST ni suplanta rol');
 
-    test(request('index.php?c=catalogo&a=crear')[0]===200,'Bibliotecario abre formulario de alta de libros');
-    test(request('index.php?c=catalogo&a=confirmarEliminar&id=1')[0]===200,'Confirmación de eliminar libro');
-    test(request('index.php?c=lectores')[0]===200,'Listado de lectores accesible');
-    test(request('index.php?c=lectores&a=crear')[0]===200,'Formulario de alta de lectores');
-    test(request('index.php?c=lectores&a=editar&id=1')[0]===200,'Formulario de edición de lectores');
-    test(request('index.php?c=usuarios')[0]===200,'Listado de usuarios exclusivo de bibliotecario');
-    test(request('index.php?c=usuarios&a=crear')[0]===200,'Formulario de alta de usuarios');
-    test(request('index.php?c=reportes&a=index&tipo=vencidos&hasta='.date('Y-m-d'))[0]===200,
-        'Reporte de vencidos a fecha actual');
-    test(request('index.php?c=reportes&a=index&tipo=populares&mes='.date('Y-m'))[0]===200,
-        'Reporte mensual de libros más prestados');
     test(request('index.php?c=catalogo&a=editar&id=1')[0]===403,'Auxiliar no edita catálogo por URL directa');
     test(request('index.php?c=catalogo&a=guardar&id=1',['csrf_token'=>$token,'titulo'=>'Manipulado','rol'=>'bibliotecario'])[0]===403,'Auxiliar no modifica catálogo con POST manual');
     test(request('index.php?c=catalogo&a=buscar&q=Asturias')[0]===200,'Auxiliar puede consultar JSON de catálogo');
