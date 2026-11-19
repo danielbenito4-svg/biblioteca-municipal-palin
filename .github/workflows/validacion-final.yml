@@ -48,11 +48,14 @@ jobs:
           sudo DEBIAN_FRONTEND=noninteractive apt-get install -y apache2 libapache2-mod-php php-mysql php-mbstring php-curl
           PHP_MOD=$(basename "$(find /etc/apache2/mods-available -name 'php*.load' | head -n 1)" .load)
           sudo a2enmod "$PHP_MOD"
-          sudo ln -s "$GITHUB_WORKSPACE" /var/www/html/biblioteca-palin
-          printf '<Directory "%s">\nAllowOverride All\nOptions FollowSymLinks\nRequire all granted\n</Directory>\n' "$GITHUB_WORKSPACE" | sudo tee /etc/apache2/conf-available/biblioteca-final.conf
+          sudo mkdir -p /var/www/html/biblioteca-palin
+          sudo cp -a "$GITHUB_WORKSPACE/." /var/www/html/biblioteca-palin/
+          printf '<Directory "/var/www/html/biblioteca-palin">\nAllowOverride All\nOptions FollowSymLinks\nRequire all granted\n</Directory>\n' | sudo tee /etc/apache2/conf-available/biblioteca-final.conf
           sudo a2enconf biblioteca-final
           printf "%s\n" "<?php return ['password' => 'demo'];" > config/database.local.php
+          sudo cp config/database.local.php /var/www/html/biblioteca-palin/config/database.local.php
           chmod -R ugo+rwX storage
+          sudo chmod -R a+rwX /var/www/html/biblioteca-palin/storage
           php -r '$c=require "config/database.php"; $p=new PDO("mysql:host=".$c["host"].";port=".$c["port"].";charset=utf8mb4",$c["username"],$c["password"]); $p->exec(file_get_contents("database.sql"));'
           sudo service apache2 restart
           curl -sSi --max-time 10 http://localhost/biblioteca-palin/ | head -n 25
