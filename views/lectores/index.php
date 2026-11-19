@@ -14,10 +14,10 @@
 <div class="table-scroll"><table class="loans-table"><thead><tr><th>Carné</th><th>Nombre</th><th>Teléfono</th>
 <th>Tipo</th><th>Estado</th><th>Historial</th><?php if (es_bibliotecario()): ?><th>Acciones</th><?php endif ?></tr></thead><tbody>
 <?php foreach ($lectores as $r): ?><tr>
-<td><?= e($r['carne']) ?></td><td class="cell-title"><?= e($r['nombre']) ?></td>
-<td><?= e($r['telefono']?:'Sin teléfono') ?></td><td><?= e($r['tipo']) ?></td>
-<td><?= e($r['estado']) ?></td><td><?= e($r['total_prestamos']) ?> préstamos</td>
-<?php if (es_bibliotecario()): ?><td><div class="row-actions">
+<td data-label="Carné"><?= e($r['carne']) ?></td><td class="cell-title" data-label="Nombre"><?= e($r['nombre']) ?></td>
+<td data-label="Teléfono"><?= e($r['telefono']?:'Sin teléfono') ?></td><td data-label="Tipo"><?= e($r['tipo']) ?></td>
+<td data-label="Estado"><?= e($r['estado']) ?></td><td data-label="Historial"><?= e($r['total_prestamos']) ?> préstamos</td>
+<?php if (es_bibliotecario()): ?><td data-label="Acciones"><div class="row-actions">
 <a href="<?= e(ruta('lectores','editar',['id'=>$r['id']])) ?>">Editar</a>
 <a class="danger-link" href="<?= e(ruta('lectores','confirmarEliminar',['id'=>$r['id']])) ?>">Eliminar</a>
 </div></td><?php endif ?></tr><?php endforeach ?>
