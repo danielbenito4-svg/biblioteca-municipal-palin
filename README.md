@@ -115,3 +115,10 @@ Etiquetas históricas: `checkpoint-1`, `checkpoint-2`. Para la entrega final, cr
 ## Uso de inteligencia artificial
 
 Se utilizó ChatGPT/Codex como apoyo para analizar los requisitos, implementar y depurar módulos, explicar decisiones técnicas, crear pruebas y redactar documentación. El estudiante revisa el código, practica la defensa y debe poder explicarlo y modificarlo. No se usaron frameworks ni generadores de CRUD externos.
+
+
+## Diseño adaptable para móviles y tabletas
+
+En pantallas menores de 1200 px, la navegación lateral se transforma en un **menú desplegable «Menú»**. Se abre con el botón superior y se cierra con «×», tocando fuera o con la tecla Escape. En teléfonos (hasta 720 px), los listados de préstamos, libros, lectores, usuarios y reportes se convierten en tarjetas con etiquetas de campo, sin cortes ni desplazamiento horizontal de toda la página. La interfaz mantiene los permisos de cada rol: **el menú no concede autorización**; las rutas siguen comprobando los roles en PHP.
+
+Si copias estos archivos a tu instalación XAMPP, sustituye solamente los archivos de código. **No vuelvas a importar `database.sql`** cuando ya tengas datos locales. En Edge/Brave del teléfono, recarga para mostrar los estilos nuevos (los recursos incluyen versión de caché `responsive-20261118`).
