@@ -1,0 +1,39 @@
+name: Validacion PHP — entrega final
+
+on:
+  push:
+    branches: [main, entrega-final-2026]
+  workflow_dispatch:
+
+jobs:
+  comprobar:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: "demo"
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -p$MYSQL_ROOT_PASSWORD"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: "3306"
+      DB_DATABASE: biblioteca_palin
+      DB_USERNAME: root
+      DB_PASSWORD: demo
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preparar PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: pdo_mysql, mbstring, curl
+          coverage: none
+      - name: Comprobar sintaxis de todos los archivos PHP
+        run: |
+          find . -name '*.php' -type f -print0 | xargs -0 -n1 php -l
+      - name: Probar modelos y reglas con base temporal MySQL
+        run: php tests/integration.php

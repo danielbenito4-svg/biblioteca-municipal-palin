@@ -118,6 +118,55 @@ try {
     catch (PDOException $e) { check($e->getCode()==='23000','Llave foránea impide borrar un libro con préstamos'); }
     try { $db->exec("INSERT INTO lectores (carne,nombre,tipo,estado) VALUES ('L-001','Duplicado','vecino','activo')"); throw new RuntimeException('Se aceptó carné duplicado'); }
     catch (PDOException $e) { check($e->getCode()==='23000','Restricción UNIQUE del carné'); }
+
+    // Verificación de los módulos añadidos para la entrega final.
+    $nuevo=['isbn'=>'DEMO-FINAL-123','titulo'=>'Libro temporal','autor'=>'Autor de pruebas',
+        'categoria'=>'Prueba','anio'=>'2026','ejemplares_totales'=>'2'];
+    $newBookId=$catalogo->crear($nuevo);
+    check((int)$catalogo->encontrar($newBookId)['ejemplares_totales']===2,'Crear libro con validación');
+    $catalogo->actualizar($newBookId,array_replace($nuevo,['titulo'=>'Libro editado']));
+    check($catalogo->encontrar($newBookId)['titulo']==='Libro editado','Editar libro nuevo');
+    $catalogo->eliminar($newBookId);
+    check($catalogo->encontrar($newBookId)===null,'Eliminar libro sin historial');
+    try { $catalogo->eliminar(1); throw new RuntimeException('Se eliminó libro con historial.'); }
+    catch (ValidationException $e) { check(isset($e->errors['general']),'Impedir borrado de libro relacionado'); }
+
+    $lectoresAdmin=new Lector($db);
+    $reader=['carne'=>'TEST-FINAL-1','nombre'=>'Lector temporal','telefono'=>'55550088',
+        'tipo'=>'vecino','estado'=>'activo'];
+    $readerId=$lectoresAdmin->guardar($reader);
+    check($lectoresAdmin->encontrar($readerId)['nombre']==='Lector temporal','Crear lector');
+    $lectoresAdmin->guardar(array_replace($reader,['nombre'=>'Lector actualizado']),$readerId);
+    check($lectoresAdmin->encontrar($readerId)['nombre']==='Lector actualizado','Editar lector');
+    check(str_contains($lectoresAdmin->eliminar($readerId),'eliminó') &&
+        $lectoresAdmin->encontrar($readerId)===null,'Eliminar lector sin historial');
+    check(str_contains($lectoresAdmin->eliminar(1),'desactivado') &&
+        $lectoresAdmin->encontrar(1)['estado']==='inactivo','Desactivar lector con historial');
+
+    $adminUsuarios=new AdministracionUsuarios($db);
+    $operator=['usuario'=>'prueba_final_1','nombre'=>'Usuario temporal','rol'=>'auxiliar',
+        'activo'=>'1','password'=>'ContraSegura2026!'];
+    $operatorId=$adminUsuarios->guardar($operator,null,1);
+    check(password_verify('ContraSegura2026!',$db->query(
+        'SELECT password_hash FROM usuarios WHERE id='.(int)$operatorId)->fetchColumn()),'Guardar contraseña de cuenta nueva como hash');
+    $adminUsuarios->guardar(array_replace($operator,['nombre'=>'Nuevo nombre','password'=>'']),$operatorId,1);
+    check($adminUsuarios->encontrar($operatorId)['nombre']==='Nuevo nombre','Editar usuario sin cambiar contraseña');
+    $adminUsuarios->desactivar($operatorId,1);
+    check((int)$adminUsuarios->encontrar($operatorId)['activo']===0,'Desactivar usuario sin borrarlo');
+    try { $adminUsuarios->desactivar(1,1); throw new RuntimeException('Permitió auto-desactivación'); }
+    catch (ValidationException $e) { check(isset($e->errors['general']),'Proteger al bibliotecario de auto-desactivación'); }
+
+    $reporte=new Reporte($db);
+    $vencidos=$reporte->vencidos(date('Y-m-d'));
+    check(count($vencidos)>=1 && isset($vencidos[0]['titulo'],$vencidos[0]['lector']),
+        'Reporte de vencidos usa JOIN de libro y lector');
+    $mes=(new DateTimeImmutable('today'))->modify('-2 days')->format('Y-m');
+    $populares=$reporte->populares($mes);
+    check(count($populares)>=1 && isset($populares[0]['prestamos_mes']) &&
+        count($populares)<=10,'Reporte mensual agrega préstamos con COUNT y GROUP BY');
+    try { $reporte->populares('2026-13'); throw new RuntimeException('Aceptó mes inválido'); }
+    catch (ValidationException $e) { check(isset($e->errors['mes']),'Validar filtro de mes en servidor'); }
+
     echo "\n$checks comprobaciones correctas.\n";
 } catch (Throwable $e) {
     fwrite(STDERR,$e->getMessage()."\n"); $exitCode=1;
