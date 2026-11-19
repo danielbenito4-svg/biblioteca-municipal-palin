@@ -138,7 +138,7 @@ try {
     check($lectoresAdmin->encontrar($readerId)['nombre']==='Lector temporal','Crear lector');
     $lectoresAdmin->guardar(array_replace($reader,['nombre'=>'Lector actualizado']),$readerId);
     check($lectoresAdmin->encontrar($readerId)['nombre']==='Lector actualizado','Editar lector');
-    check(str_contains($lectoresAdmin->eliminar($readerId),'eliminó') &&
+    check(str_contains($lectoresAdmin->eliminar($readerId),'eliminado') &&
         $lectoresAdmin->encontrar($readerId)===null,'Eliminar lector sin historial');
     check(str_contains($lectoresAdmin->eliminar(1),'desactivado') &&
         $lectoresAdmin->encontrar(1)['estado']==='inactivo','Desactivar lector con historial');
