@@ -19,10 +19,10 @@
         <th>ISBN</th><th>Título</th><th>Autor</th><th>Categoría</th><th>Disponibilidad</th><?php if(es_bibliotecario()): ?><th>Acciones</th><?php endif ?>
     </tr></thead><tbody>
     <?php foreach ($libros as $libro): ?><tr>
-        <td><?= e($libro['isbn']) ?></td><td class="cell-title"><?= e($libro['titulo']) ?></td>
-        <td><?= e($libro['autor']) ?></td><td><?= e($libro['categoria']) ?></td>
-        <td><?= e($libro['disponibles']) ?> / <?= e($libro['ejemplares_totales']) ?></td>
-        <?php if (es_bibliotecario()): ?><td><div class="row-actions">
+        <td data-label="ISBN"><?= e($libro['isbn']) ?></td><td class="cell-title" data-label="Título"><?= e($libro['titulo']) ?></td>
+        <td data-label="Autor"><?= e($libro['autor']) ?></td><td data-label="Categoría"><?= e($libro['categoria']) ?></td>
+        <td data-label="Disponibilidad"><?= e($libro['disponibles']) ?> / <?= e($libro['ejemplares_totales']) ?></td>
+        <?php if (es_bibliotecario()): ?><td data-label="Acciones"><div class="row-actions">
             <a href="<?= e(ruta('catalogo','editar',['id'=>$libro['id']])) ?>">Editar</a>
             <a class="danger-link" href="<?= e(ruta('catalogo','confirmarEliminar',['id'=>$libro['id']])) ?>">Eliminar</a>
         </div></td><?php endif ?>
