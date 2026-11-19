@@ -5,6 +5,9 @@ on:
     branches: [main, entrega-final-2026]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   comprobar:
     runs-on: ubuntu-latest
@@ -37,3 +40,25 @@ jobs:
           find . -name '*.php' -type f -print0 | xargs -0 -n1 php -l
       - name: Probar modelos y reglas con base temporal MySQL
         run: php tests/integration.php
+
+      - name: Preparar ZIP definitivo de codigo
+        if: github.ref == 'refs/heads/main'
+        run: |
+          mkdir -p dist
+          git archive --format=zip --prefix=biblioteca-palin/ -o dist/ProyectoFinal_2453090_Benito.zip HEAD
+          unzip -t dist/ProyectoFinal_2453090_Benito.zip
+          unzip -l dist/ProyectoFinal_2453090_Benito.zip | grep -E 'database.sql|README.md'
+      - name: Publicar ZIP como artefacto descargable
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ProyectoFinal_2453090_Benito
+          path: dist/ProyectoFinal_2453090_Benito.zip
+          if-no-files-found: error
+      - name: Crear etiqueta Git final solo tras pasar las pruebas
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "Entrega Final"
+          git config user.email "actions@users.noreply.github.com"
+          git tag -a final -m "Entrega y defensa del proyecto final, noviembre 2026" "$GITHUB_SHA"
+          git push origin refs/tags/final
