@@ -5,13 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= e($title) ?> · Biblioteca de Palín</title>
     <meta name="theme-color" content="#174c3d">
-    <link rel="stylesheet" href="public/css/app.css">
-    <script src="public/js/app.js" defer></script>
+    <link rel="stylesheet" href="public/css/app.css?v=responsive-20261118">
+    <script src="public/js/app.js?v=responsive-20261118" defer></script>
 </head>
 <body class="<?= usuario_actual() ? 'authenticated' : 'guest' ?>">
 <a class="skip" href="#contenido">Saltar al contenido</a>
 <?php if (usuario_actual()): ?>
-<aside class="sidebar">
+<div class="mobile-toolbar">
+    <a class="mobile-brand" href="<?= e(url()) ?>" aria-label="Biblioteca Municipal de Palín, inicio">
+        <span class="mobile-brand-icon" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M4 6c5-1 9 0 12 3 3-3 7-4 12-3v19c-5-1-9 0-12 3-3-3-7-4-12-3V6Z" stroke="currentColor" stroke-width="1.8"/><path d="M16 9v19" stroke="currentColor" stroke-width="1.8"/></svg></span>
+        <span>Biblioteca<small>Municipal de Palín</small></span>
+    </a>
+    <button class="menu-toggle" type="button" aria-controls="sidebar-menu" aria-expanded="false" aria-label="Abrir menú principal"><span aria-hidden="true">☰</span> Menú</button>
+</div>
+<button class="sidebar-backdrop" type="button" aria-label="Cerrar menú" hidden></button>
+<aside class="sidebar" id="sidebar-menu">
+    <div class="sidebar-mobile-head"><span>MENÚ PRINCIPAL</span><button class="menu-close" type="button" aria-label="Cerrar menú principal"><span aria-hidden="true">×</span></button></div>
     <a class="brand" href="<?= e(url()) ?>" aria-label="Biblioteca de Palín, inicio">
         <span class="brand-icon" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M4 6c5-1 9 0 12 3 3-3 7-4 12-3v19c-5-1-9 0-12 3-3-3-7-4-12-3V6Z" stroke="currentColor" stroke-width="1.8"/><path d="M16 9v19" stroke="currentColor" stroke-width="1.8"/></svg></span>
         <span>Biblioteca<span class="brand-place">Municipal de Palín</span></span>
