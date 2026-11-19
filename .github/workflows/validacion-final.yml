@@ -41,6 +41,20 @@ jobs:
       - name: Probar modelos y reglas con base temporal MySQL
         run: php tests/integration.php
 
+
+      - name: Instalar Apache y validar rutas HTTP reales
+        run: |
+          sudo apt-get update -qq
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y apache2 libapache2-mod-php8.2 php8.2-mysql php8.2-mbstring php8.2-curl
+          sudo a2enmod php8.2
+          sudo ln -s "$GITHUB_WORKSPACE" /var/www/html/biblioteca-palin
+          printf '<Directory "%s">\nAllowOverride All\nOptions FollowSymLinks\nRequire all granted\n</Directory>\n' "$GITHUB_WORKSPACE" | sudo tee /etc/apache2/conf-available/biblioteca-final.conf
+          sudo a2enconf biblioteca-final
+          printf "%s\n" "<?php return ['password' => 'demo'];" > config/database.local.php
+          chmod -R ugo+rwX storage
+          php -r '$c=require "config/database.php"; $p=new PDO("mysql:host=".$c["host"].";port=".$c["port"].";charset=utf8mb4",$c["username"],$c["password"]); $p->exec(file_get_contents("database.sql"));'
+          sudo service apache2 restart
+          php tests/http.php
       - name: Preparar ZIP definitivo de codigo
         if: github.ref == 'refs/heads/main'
         run: |
