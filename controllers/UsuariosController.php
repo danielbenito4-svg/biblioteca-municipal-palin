@@ -59,9 +59,15 @@ final class UsuariosController
             flash('Usuario desactivado. Su sesión ya no será válida.');
             header('Location: '.ruta('usuarios'),true,303);
         } catch (ValidationException $e) {
+            $registro=$this->usuarios->encontrar($this->id());
+            if (!$registro) {
+                http_response_code(404);
+                render('error',['title'=>'Usuario inexistente','message'=>'El usuario no existe.']);
+                return;
+            }
             http_response_code(422);
             render('usuarios/desactivar',['title'=>'Desactivar usuario',
-                'registro'=>$this->usuarios->encontrar($this->id()),'errors'=>$e->errors]);
+                'registro'=>$registro,'errors'=>$e->errors]);
         }
     }
 }

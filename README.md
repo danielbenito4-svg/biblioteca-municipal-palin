@@ -1,200 +1,117 @@
-# Biblioteca Municipal de Palín
+# Biblioteca Municipal de Palín — Proyecto final
 
-Proyecto final individual de Programación Web, segundo semestre de 2026.
-Sistema web para administrar el catálogo, los lectores, los préstamos y las devoluciones de la biblioteca.
+Sistema de gestión web para la Biblioteca Municipal de Palín, Escuintla, Guatemala.
+**Programación WEB · Sexto semestre · Fase 3 (30 puntos) · Noviembre de 2026**.
 
-## Estado del proyecto
+Este proyecto es individual y está desarrollado en **PHP 8.x + MySQL/MariaDB**, con arquitectura **Modelo–Vista–Controlador**, JavaScript nativo y CSS local. Funciona **sin Internet** una vez instalado XAMPP. No utiliza Laravel, React ni dependencias de CDN.
 
-Checkpoint 2 implementado: inicio/cierre de sesión, contraseñas con hash, autorización por roles en el servidor, búsqueda AJAX del catálogo con disponibilidad y checklist de seguridad aplicado. Se conserva el MVC y el CRUD de `prestamos` del checkpoint 1. La instalación inicial incluye 12 préstamos, 10 libros, 10 lectores y 2 usuarios de prueba.
+## Funcionalidades entregadas
 
-La etiqueta de esta entrega es [`checkpoint-2`](https://github.com/danielbenito4-svg/biblioteca-municipal-palin/tree/checkpoint-2). Ver el [checklist de seguridad](docs/seguridad-checkpoint-2.md). La versión anterior permanece en [`checkpoint-1`](https://github.com/danielbenito4-svg/biblioteca-municipal-palin/tree/checkpoint-1).
+- **Préstamos y devoluciones:** crear, consultar, buscar por libro, ISBN, carné o lector, filtrar por estado, editar, eliminar con confirmación (bibliotecario), devolver y calcular multas automáticamente.
+- **Libros:** listado completo, búsqueda por título/autor/ISBN, alta, edición y eliminación con confirmación. No se elimina un libro que tenga préstamos históricos, por integridad referencial.
+- **Lectores:** listado con filtro/búsqueda, alta, edición, eliminación cuando no hay historial y desactivación cuando tiene préstamos, conservando el historial.
+- **Usuarios:** listado y búsqueda, alta, edición y desactivación (borrado lógico); contraseñas almacenadas exclusivamente como hashes. Un bibliotecario no puede desactivar su propia cuenta ni retirarse su rol.
+- **Roles:** bibliotecario administra libros, lectores, usuarios, préstamos y reportes. Auxiliar consulta libros/lectores y gestiona préstamos y devoluciones, sin eliminar préstamos ni modificar catálogos, lectores o cuentas. Los permisos se verifican en **index.php** para cada petición, incluidas URL directas.
+- **AJAX:** búsqueda de libros desde tres caracteres con `fetch()` sin recargar la página, endpoint JSON propio en `index.php?c=catalogo&a=buscar&q=...`, disponibilidad actualizada.
+- **Reportes:** préstamos vencidos al corte de una fecha y diez libros más prestados en el mes seleccionado; ambos con `JOIN`, el segundo con `COUNT`, `GROUP BY` y filtro por mes.
 
-![Inicio de sesión](docs/capturas/login.png)
+## Reglas de negocio de la biblioteca
 
-![Búsqueda AJAX del catálogo](docs/capturas/catalogo-ajax.png)
+1. Disponibilidad: ejemplares totales menos préstamos sin fecha de devolución. No se permite prestar sin existencias.
+2. Cada lector admite **máximo tres préstamos activos**.
+3. Fecha límite = fecha del préstamo + **7 días**. Multa por atraso = **Q 2.00 por día**, nunca negativa.
+4. Un lector con préstamos vencidos **no puede recibir** otro libro.
+5. Se impiden préstamos a lectores inactivos, fechas futuras/inválidas y registros con referencias inexistentes. Los controles están en el servidor, no dependen de JavaScript.
 
-Las páginas internas requieren sesión. El operador de un nuevo préstamo se toma del usuario autenticado; al editar se conserva el operador original. El bibliotecario puede eliminar préstamos y editar libros; el auxiliar puede registrar préstamos y devoluciones y consultar el catálogo. Las acciones restringidas devuelven HTTP 403 incluso mediante URL directa o POST manual.
+## Instalación local en Windows (XAMPP)
 
-Para la entrega final quedan las altas/bajas del catálogo, la administración de lectores y usuarios y los dos reportes de la ficha. Este avance incluye consulta y edición de libros, además del CRUD de préstamos completo.
+Requisitos: Apache + MySQL/MariaDB desde XAMPP, PHP 8.2+ con `pdo_mysql`, `mbstring` y `curl` para las pruebas. Visual Studio Code y Edge son suficientes. No se requiere Composer, npm o Internet.
 
-## Alcance previsto
+1. En XAMPP, iniciar **Apache** y **MySQL**.
+2. Copiar el proyecto a `C:\xampp\htdocs\biblioteca-palin\`, conservando `index.php` en la raíz.
+3. Abrir `http://localhost/phpmyadmin` y, desde la página principal del servidor, seleccionar **Importar** y escoger `database.sql`. El archivo crea la base **biblioteca_palin**, cuatro tablas relacionadas (`libros`, `lectores`, `usuarios`, `prestamos`) y los datos de demostración: 10 libros, 10 lectores, 12 préstamos, 2 usuarios. **Importar una sola vez en una base nueva**, no sobre datos propios existentes.
+4. En XAMPP estándar se utiliza la conexión `127.0.0.1:3306`, usuario `root`, contraseña vacía. Para otros valores, copiar `config/database.local.example.php` a `config/database.local.php` y ajustar; **no subir** este archivo a Git. También se admiten variables `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME` y `DB_PASSWORD`.
+5. Abrir **http://localhost/biblioteca-palin/** e iniciar sesión con las credenciales de demostración.
 
-- Administrar libros, lectores y usuarios.
-- Registrar, consultar, editar y eliminar préstamos según permisos y validaciones.
-- Registrar devoluciones y calcular multas por atraso.
-- Consultar la disponibilidad de ejemplares.
-- Buscar libros por título, autor o ISBN desde tres caracteres, mediante fetch() y JSON.
-- Consultar préstamos vencidos a una fecha y los diez libros más prestados de un mes.
-- Proteger las páginas internas mediante sesión y permisos por rol.
-
-No se incluyen pagos en línea, reservas, notificaciones por correo ni acceso público de lectores.
-
-## Roles
-
-| Rol | Alcance completo previsto |
-| --- | --- |
-| Bibliotecario (administrador) | Gestionar catálogo, lectores, préstamos, devoluciones y usuarios; consultar reportes. |
-| Auxiliar | Consultar catálogo y lectores; registrar préstamos y devoluciones. No modifica catálogo, lectores ni usuarios y no elimina préstamos. |
-
-Los permisos de las funciones disponibles ya se comprueban en el servidor. La matriz implementada está en el [checklist](docs/seguridad-checkpoint-2.md).
-
-## Stack seleccionado
-
-- PHP 8.x con arquitectura MVC propia.
-- Apache y MariaDB mediante XAMPP.
-- PDO para acceso a datos con consultas preparadas.
-- HTML5, CSS3 y JavaScript con fetch().
-- Git y GitHub; editor Visual Studio Code.
-- Recursos CSS/JS locales para funcionar sin conexión a internet.
-
-## Modelo de datos propuesto
-
-La tabla principal es `prestamos`. Cada préstamo representa un ejemplar de un libro.
-Se añade `usuario_id` a la ficha base para identificar al usuario que registra el préstamo.
-
-```mermaid
-erDiagram
-    libros ||--o{ prestamos : registra
-    lectores ||--o{ prestamos : solicita
-    usuarios ||--o{ prestamos : registra
-    libros {
-        int id PK
-        varchar isbn UK
-        varchar titulo
-        varchar autor
-        varchar categoria
-        smallint anio
-        int ejemplares_totales
-    }
-    lectores {
-        int id PK
-        varchar carne UK
-        varchar nombre
-        varchar telefono
-        enum tipo
-        enum estado
-    }
-    usuarios {
-        int id PK
-        varchar usuario UK
-        varchar password_hash
-        varchar nombre
-        enum rol
-        boolean activo
-    }
-    prestamos {
-        int id PK
-        int libro_id FK
-        int lector_id FK
-        int usuario_id FK
-        date fecha_prestamo
-        date fecha_limite
-        date fecha_devolucion
-        decimal multa
-    }
-```
-
-Cada préstamo pertenece a exactamente un libro, un lector y un usuario. Cada libro, lector o usuario puede tener cero o muchos préstamos asociados.
-
-## Reglas de negocio
-
-1. Disponibles = ejemplares totales menos préstamos sin devolver de ese libro; no se presta sin disponibilidad.
-2. Un lector puede tener como máximo tres préstamos activos.
-3. El plazo es de siete días. Al devolver, la multa es Q 2.00 por día de atraso, con mínimo Q 0.00.
-4. Un lector con préstamos vencidos no puede recibir nuevos préstamos.
-5. Las reglas se validan en el servidor. Se impedirán eliminaciones que rompan relaciones existentes; los usuarios pueden desactivarse.
-
-## Seguridad del checkpoint 2
-
-Consultas preparadas PDO, escape con `htmlspecialchars`, tokens CSRF en operaciones de escritura, validación en cliente y servidor, rutas permitidas por lista y métodos HTTP comprobados. Los errores técnicos se registran en `storage/php-error.log`, fuera de las vistas y protegido por Apache.
-
-Se usa `password_verify`, con actualización mediante `password_hash` si corresponde. Al autenticar se regenera el identificador de sesión y el token CSRF; al salir se destruyen la sesión y su cookie. Caduca tras 30 minutos de inactividad. El estado y el rol del usuario se releen en la BD en cada petición. Cookies HttpOnly/SameSite=Lax y Secure si se sirve por HTTPS, respuestas privadas sin caché y CSP con recursos locales. El detalle y las evidencias están en el checklist de seguridad.
-
-## Entregas
-
-| Fecha | Entrega |
-| --- | --- |
-| 18/10/2026 | Propuesta y repositorio con README inicial |
-| 25/10/2026 | MVC, base de datos y CRUD de prestamos; etiqueta checkpoint-1 |
-| 08/11/2026 | Autenticación, roles y AJAX; etiqueta checkpoint-2 |
-| 22/11/2026 | Sistema completo y defensa; etiqueta final |
-
-El historial reflejará el avance real con al menos quince commits distribuidos durante el período.
-
-## Instalación y pruebas
-
-Requisitos: XAMPP con Apache, PHP 8.2 o superior, MariaDB 10.4 o superior y extensiones `pdo_mysql`, `mbstring` y `curl` (esta última para las pruebas HTTP). No requiere Composer, Node, frameworks, librerías de terceros ni conexión a internet durante la demostración.
-
-1. Iniciar **Apache** y **MySQL** desde XAMPP.
-2. Clonar o descargar este repositorio dentro de `C:\xampp\htdocs\biblioteca-palin`.
-3. Abrir `http://localhost/phpmyadmin`, elegir **Importar** y seleccionar `database.sql`. El script crea la base `biblioteca_palin`, sus cuatro tablas, restricciones y datos de prueba. Importarlo una sola vez en una instalación nueva; no elimina bases ni tablas existentes.
-4. La configuración local predeterminada es `127.0.0.1:3306`, usuario `root` y contraseña vacía, habitual en XAMPP de desarrollo. Si el entorno usa otros valores, copiar `config/database.local.example.php` como `config/database.local.php` y ajustar los datos. Este archivo local está excluido de Git. También se aceptan las variables `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME` y `DB_PASSWORD`.
-5. Abrir **http://localhost/biblioteca-palin/**.
-6. Iniciar sesión con una de las cuentas de demostración de esta página.
-
-**Si ya instalaste el checkpoint 1:** el esquema y las cuentas existentes siguen siendo compatibles. Actualiza los archivos y recarga el navegador; no vuelvas a importar `database.sql` sobre la base existente.
-
-La zona horaria del sistema es `America/Guatemala`. Las fechas de los datos de prueba se calculan al importar, para disponer de casos en curso, vencidos y devueltos. Los nombres, teléfonos e identificadores del catálogo son datos de demostración.
-
-### Organización MVC
-
-```text
-index.php                   Enrutador de entrada y controles HTTP/CSRF
-config/
-  bootstrap.php             Inicio, autoload y funciones compartidas
-  database.php              Configuración de conexión
-  Conexion.php              Conexión PDO
-  Autenticacion.php          Sesión, caducidad y usuario vigente
-controllers/
-  PrestamoController.php    Recibe solicitudes y elige modelos y vistas
-  AuthController.php        Inicio y cierre de sesión
-  CatalogoController.php    Consulta JSON y edición administrativa
-models/
-  Prestamo.php              Consultas, transacciones y reglas de negocio
-  Catalogo.php              Libros, lectores, búsqueda y edición de libros
-  Usuario.php               Verificación de hash y consulta de usuario activo
-  ValidationException.php   Errores de validación del formulario
-views/
-  layout/                   Estructura compartida de las páginas
-  prestamos/                Listado, formulario, detalle y confirmación
-  auth/ y catalogo/         Login, búsqueda en vivo y edición de libros
-public/css/ y public/js/    Recursos locales de la interfaz
-database.sql                Esquema y datos de prueba
-tests/                      Pruebas de integración y HTTP
-docs/                       Checklist de seguridad y capturas
-```
-
-Las vistas no ejecutan SQL y el controlador no construye HTML. `usuario_id` conserva al operador original al editar. La fecha límite y la multa siempre se calculan en PHP; los valores enviados por el navegador no pueden reemplazarlos. La disponibilidad se calcula desde los préstamos sin devolución, en lugar de almacenar otro contador que pueda desajustarse.
-
-### Probar el sistema
-
-Con MariaDB iniciado, ejecutar en una terminal:
-
-```powershell
-C:\xampp\php\php.exe tests\integration.php
-```
-
-La prueba crea una base temporal con nombre aleatorio, verifica el CRUD, las cuatro reglas, fechas, multas, integridad referencial y búsquedas, y elimina únicamente esa base temporal al terminar. Requiere permisos para crear bases locales.
-
-Con Apache y la aplicación instalados:
-
-```powershell
-C:\xampp\php\php.exe tests\http.php
-```
-
-La prueba HTTP verifica autenticación, cierre de sesión, permisos con ambos roles, rutas directas, JSON, formularios, persistencia, errores, CSRF, métodos HTTP y escape XSS. Crea sus propios préstamos de prueba y los elimina al terminar. Se puede pasar una URL local diferente como primer argumento. Usa las cuentas de demostración originales; las pruebas de cambios de rol, usuarios inactivos y caducidad se ejecutan únicamente en la base temporal de integración.
-
-Validación del checkpoint 2: **47 comprobaciones de integración y 67 HTTP correctas**, además de la revisión en navegador y móvil. Las evidencias y los controles aplicados están en el [checklist de seguridad](docs/seguridad-checkpoint-2.md).
+**No hay que ejecutar comandos adicionales** para la interfaz. CSS y JavaScript están en `public/`, sin CDN.
 
 ### Usuarios de demostración
 
-| Usuario | Contraseña de prueba | Rol |
+| Cuenta | Contraseña local de demostración | Rol |
 | --- | --- | --- |
 | `bibliotecario` | `Biblioteca2026!` | Bibliotecario |
 | `auxiliar` | `Auxiliar2026!` | Auxiliar |
 
-Son credenciales públicas para la demostración local, con contraseñas almacenadas como hash en la base.
+Las claves del SQL son **hash bcrypt**, no texto plano. Son cuentas ficticias: reemplazarlas antes de usar una instalación fuera del aula.
+
+## Arquitectura MVC y archivos
+
+```text
+biblioteca-palin/
+├── index.php                       Front controller: rutas, roles, CSRF y cabeceras
+├── config/                         Conexión PDO, autenticación, rate limit y auditoría
+├── controllers/                    Auth, Prestamo, Catalogo, Lector, Usuarios, Reporte
+├── models/                         Reglas de negocio y consultas parametrizadas
+├── views/                          Plantillas PHP, formularios, confirmaciones y reportes
+│   ├── layout/
+│   ├── auth/  ├── prestamos/  ├── catalogo/
+│   ├── lectores/  ├── usuarios/  └── reportes/
+├── public/css/app.css              Diseño responsive y recursos sin Internet
+├── public/js/app.js                AJAX con fetch y textContent
+├── database.sql                    Esquema reproducible + datos de prueba
+├── tests/                           Pruebas de integración, HTTP y seguridad
+├── docs/                            Capturas y checklist del checkpoint 2
+└── README.md                        Instalación, requisitos y defensa
+```
+
+Todas las páginas internas pasan por `index.php`. Las vistas no ejecutan SQL; los controladores no construyen HTML; los modelos manejan PDO y la lógica de negocio. El operador y la multa se establecen **en el servidor**, no desde el formulario.
+
+### Seguridad
+
+- Consultas parametrizadas PDO (emulación de prepares desactivada); validación de tipos, rangos y longitudes.
+- Escape HTML centralizado: `e()`/ `htmlspecialchars(..., ENT_QUOTES)`; en JS se usa `textContent`, no `innerHTML`.
+- CSRF en **todos** los formularios POST y comprobación de método HTTP.
+- `password_hash()` / `password_verify()`, protección de intentos de login (5 fallos/15 minutos) y bitácora interna.
+- Sesión con regeneración, caducidad por inactividad, `HttpOnly`, `SameSite=Lax` y cookie `Secure` cuando hay HTTPS.
+- Roles vigentes consultados en la BD, respuestas 401/403/404/405 según el caso; `X-Frame-Options: DENY`, CSP `frame-ancestors 'none'`, `nosniff`, `Referrer-Policy`.
+- `storage/`, `config/`, `models/` y `tests/` no exponen información por Apache; no se entrega ningún log, contraseña local ni base real.
+
+## Verificación
+
+Con Apache y MySQL encendidos, desde la raíz del proyecto:
+
+```powershell
+C:\xampp\php\php.exe tests\integration.php
+C:\xampp\php\php.exe tests\http.php
+C:\xampp\php\php.exe tests\seguridad-semana17.php
+```
+
+La prueba de integración crea una BD temporal y la elimina; **no borra la BD principal**. La prueba HTTP trabaja sobre la instalación local y gestiona registros de prueba; ejecutar con datos ficticios. El conjunto existente fue probado durante Checkpoint 2 (47 integraciones y 67 HTTP); **después de añadir los módulos finales es necesario ejecutar de nuevo las pruebas**. Ver también `docs/seguridad-checkpoint-2.md` y `docs/checkpoint2-tarea9-2026.md`.
+
+### Pasos para comprobar la entrega final
+
+1. Iniciar sesión como bibliotecario, crear un libro y editarlo; intentar eliminar uno con historial (debe impedirlo).
+2. Crear un lector y editarlo; comprobar eliminación de uno sin historial y desactivación de uno con préstamos.
+3. Crear un usuario auxiliar, comprobar sus permisos y desactivarlo.
+4. Registrar préstamo válido y demostrar: falta de ejemplares, límite de tres y lector moroso; registrar devolución y multa.
+5. Buscar `Asturias` en Catálogo y observar **Network → Fetch/XHR → JSON 200**.
+6. Ejecutar Reportes: préstamos vencidos al corte y los diez libros más solicitados de un mes.
+7. Iniciar sesión como auxiliar; intentar entrar directamente a `?c=usuarios` o `?c=reportes` (403).
+
+## Capturas y evidencias
+
+El proyecto incluye capturas de inicio de sesión, préstamos, formulario, catálogo AJAX, vista móvil y acceso restringido en `docs/capturas/`. El checklist de Semana 17 está en `docs/seguridad-checkpoint-2.md`. No se presentan las nuevas pruebas finales como ejecutadas hasta volver a probarlas en XAMPP.
+
+## Control de versiones y entrega
+
+Repositorio: https://github.com/danielbenito4-svg/biblioteca-municipal-palin
+
+Etiquetas históricas: `checkpoint-1`, `checkpoint-2`. Para la entrega final, crear la etiqueta **final** sobre el commit aceptado, y adjuntar el ZIP de ese commit más el enlace del repositorio. El historial se distribuye durante octubre y noviembre y documenta las mejoras de cada fase.
+
+## Guion de defensa (10 minutos)
+
+**4 minutos — demostración:** login con dos roles; CRUD; reglas 7 días, tres préstamos, mora; AJAX y dos reportes. **3 minutos — código:** `index.php` (enrutamiento y CSRF), `models/Prestamo.php` (reglas y PDO), `controllers/CatalogoController.php` y `public/js/app.js` (JSON + fetch). **3 minutos — preguntas:** explicar consultas preparadas, autorización, XSS, rate limit y realizar un cambio menor controlado. Tener XAMPP y BD preparados **antes de las 8:00**; universidad sin Internet.
 
 ## Uso de inteligencia artificial
 
-Se utilizó ChatGPT/Codex como apoyo para organizar la propuesta, elaborar el modelo de datos, implementar los checkpoints 1 y 2, depurar el código, preparar pruebas y redactar la documentación. El estudiante debe revisar y comprender el código, practicar la demostración y poder explicar o modificar lo que entregue. Esta sección se actualizará conforme al uso real de la herramienta.
+Se utilizó ChatGPT/Codex como apoyo para analizar los requisitos, implementar y depurar módulos, explicar decisiones técnicas, crear pruebas y redactar documentación. El estudiante revisa el código, practica la defensa y debe poder explicarlo y modificarlo. No se usaron frameworks ni generadores de CRUD externos.

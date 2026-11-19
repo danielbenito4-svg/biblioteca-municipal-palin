@@ -11,7 +11,7 @@
     <form class="filters" method="get" action="index.php" role="search">
         <input type="hidden" name="c" value="prestamos"><input type="hidden" name="a" value="index">
         <div class="search-field"><label class="visually-hidden" for="q">Buscar préstamos</label><span aria-hidden="true">⌕</span><input id="q" type="search" name="q" maxlength="100" value="<?= e($busqueda) ?>" placeholder="Buscar libro, lector, carné o ISBN…"></div>
-        <div><label class="visually-hidden" for="estado">Filtrar por estado</label><select name="estado" id="estado"><option value="">Todos los estados</option value="activo" <?= $filtroEstado==='activo'?'selected':'' ?>>Sin devolver</option><option value="vencido" <?= $filtroEstado==='vencido'?'selected':'' ?>>Vencidos</option><option value="devuelto" <?= $filtroEstado==='devuelto'?'selected':'' ?>>Devueltos</option></select></div>
+        <div><label class="visually-hidden" for="estado">Filtrar por estado</label><select name="estado" id="estado"><option value="">Todos los estados</option><option value="activo" <?= $filtroEstado==='activo'?'selected':'' ?>>Sin devolver</option><option value="vencido" <?= $filtroEstado==='vencido'?'selected':'' ?>>Vencidos</option><option value="devuelto" <?= $filtroEstado==='devuelto'?'selected':'' ?>>Devueltos</option></select></div>
         <button class="button secondary" type="submit">Buscar</button><?php if ($busqueda!=='' || $filtroEstado!==''): ?><a class="text-link" href="<?= e(url()) ?>">Limpiar</a><?php endif ?>
     </form>
     <div class="table-scroll"><table class="loans-table"><thead><tr><th>N.º</th><th>Libro</th><th>Lector</th><th>Plazo</th><th>Estado</th><th>Multa</th><th class="actions-head">Acciones</th></tr></thead><tbody>

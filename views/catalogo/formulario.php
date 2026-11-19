@@ -16,4 +16,4 @@ value="<?= e($libro[$field]) ?>" maxlength="<?= e($config[1]) ?>" required></div
 value="<?= e($libro['ejemplares_totales']) ?>" min="0" max="1000000" required><small>No reducir por debajo de ejemplares prestados.</small></div>
 </div></div>
 <div class="form-actions"><a class="button secondary" href="<?= e(ruta('catalogo')) ?>">Cancelar</a>
-<button class="button primary" type="submit"><?= $libro['id']?'Guardar cambios':'Crear libro' ?></button></div></form>
+<button class="button primary" type="submit"><?= $libro['id']?'Guardar libro':'Crear libro' ?></button></div></form>
