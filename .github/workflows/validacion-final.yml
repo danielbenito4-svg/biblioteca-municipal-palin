@@ -2,7 +2,7 @@ name: Validacion PHP — entrega final
 
 on:
   push:
-    branches: [main, entrega-final-2026]
+    branches: [main, entrega-final-2026, responsive-movil-final-2026]
   workflow_dispatch:
 
 permissions:
